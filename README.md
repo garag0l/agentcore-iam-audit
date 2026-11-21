@@ -20,8 +20,8 @@ General IAM scanners don't model AgentCore resources. This tool asks the concret
 ## Install
 
 ```bash
-pipx install git+https://github.com/garag0l/agentcore-iam-audit            # offline mode, zero dependencies
-pipx install "agentcore-iam-audit[live] @ git+https://github.com/garag0l/agentcore-iam-audit"   # + live mode (boto3)
+pipx install agentcore-iam-audit            # offline mode, zero dependencies
+pipx install "agentcore-iam-audit[live]"   # + live mode (boto3)
 ```
 
 ## Usage
