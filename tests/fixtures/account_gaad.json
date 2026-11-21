@@ -1,0 +1,1297 @@
+{
+  "Policies": [
+    {
+      "PolicyName": "BedrockAgentCoreFullAccess",
+      "Arn": "arn:aws:iam::aws:policy/BedrockAgentCoreFullAccess",
+      "PolicyVersionList": [
+        {
+          "Document": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "BedrockAgentCoreFullAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:*"
+                ],
+                "Resource": "arn:aws:bedrock-agentcore:*:*:*"
+              },
+              {
+                "Sid": "IAMListAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "iam:GetRole",
+                  "iam:GetRolePolicy",
+                  "iam:ListAttachedRolePolicies",
+                  "iam:ListRolePolicies",
+                  "iam:ListRoles"
+                ],
+                "Resource": "arn:aws:iam::*:role/*"
+              },
+              {
+                "Sid": "BedrockAgentCorePassRoleAccess",
+                "Effect": "Allow",
+                "Action": "iam:PassRole",
+                "Resource": "arn:aws:iam::*:role/*BedrockAgentCore*",
+                "Condition": {
+                  "StringEquals": {
+                    "iam:PassedToService": "bedrock-agentcore.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "SecretsManagerAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "secretsmanager:CreateSecret",
+                  "secretsmanager:PutSecretValue",
+                  "secretsmanager:GetSecretValue",
+                  "secretsmanager:DeleteSecret"
+                ],
+                "Resource": "arn:aws:secretsmanager:*:*:secret:bedrock-agentcore*"
+              },
+              {
+                "Sid": "BedrockAgentCoreKMSReadAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "kms:ListKeys",
+                  "kms:DescribeKey"
+                ],
+                "Resource": [
+                  "arn:aws:kms:*:*:key/*"
+                ],
+                "Condition": {
+                  "StringEquals": {
+                    "aws:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreKMSAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:GenerateDataKey",
+                  "kms:ListGrants"
+                ],
+                "Resource": [
+                  "arn:aws:kms:*:*:key/*"
+                ],
+                "Condition": {
+                  "ForAnyValue:StringEquals": {
+                    "aws:CalledVia": [
+                      "bedrock-agentcore.amazonaws.com"
+                    ]
+                  },
+                  "StringEquals": {
+                    "aws:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreKMSGrantsAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "kms:CreateGrant"
+                ],
+                "Resource": [
+                  "arn:aws:kms:*:*:key/*"
+                ],
+                "Condition": {
+                  "ForAllValues:StringEquals": {
+                    "kms:GrantOperations": [
+                      "Decrypt",
+                      "GenerateDataKey"
+                    ]
+                  },
+                  "StringEquals": {
+                    "kms:GrantConstraintType": "EncryptionContextSubset"
+                  },
+                  "StringLike": {
+                    "kms:EncryptionContext:aws:bedrock-agentcore-gateway:arn": "arn:aws:bedrock-agentcore:*:*:gateway/*",
+                    "kms:ViaService": [
+                      "bedrock-agentcore.*.amazonaws.com"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCorePolicyKMSGrantsAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "kms:CreateGrant"
+                ],
+                "Resource": [
+                  "arn:aws:kms:*:*:key/*"
+                ],
+                "Condition": {
+                  "ForAllValues:StringEquals": {
+                    "kms:GrantOperations": [
+                      "Encrypt",
+                      "Decrypt",
+                      "GenerateDataKey",
+                      "GenerateDataKeyWithoutPlaintext",
+                      "ReEncryptFrom",
+                      "ReEncryptTo"
+                    ]
+                  },
+                  "StringEquals": {
+                    "kms:GrantConstraintType": "EncryptionContextSubset"
+                  },
+                  "StringLike": {
+                    "kms:EncryptionContext:aws:bedrock-agentcore-policy:policy-engine-arn": "arn:aws*:bedrock-agentcore:*:*:policy-engine/*",
+                    "kms:ViaService": [
+                      "bedrock-agentcore.*.amazonaws.com"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreS3Access",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetObject"
+                ],
+                "Resource": [
+                  "arn:aws:s3:::bedrock-agentcore-gateway-*"
+                ],
+                "Condition": {
+                  "StringEquals": {
+                    "aws:CalledViaLast": "bedrock-agentcore.amazonaws.com",
+                    "s3:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreGatewayLambdaAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "lambda:ListFunctions"
+                ],
+                "Resource": [
+                  "arn:aws:lambda:*:*:*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreGatewayApiGateway",
+                "Effect": "Allow",
+                "Action": [
+                  "apigateway:GET"
+                ],
+                "Resource": [
+                  "arn:aws:apigateway:*::/restapis/*/stages/*/exports/*"
+                ]
+              },
+              {
+                "Sid": "LoggingAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:Get*",
+                  "logs:List*",
+                  "logs:StartQuery",
+                  "logs:StopQuery",
+                  "logs:Describe*",
+                  "logs:TestMetricFilter",
+                  "logs:FilterLogEvents"
+                ],
+                "Resource": [
+                  "arn:aws:logs:*:*:log-group:/aws/bedrock-agentcore/*",
+                  "arn:aws:logs:*:*:log-group:/aws/application-signals/data:*",
+                  "arn:aws:logs:*:*:log-group:aws/spans:*"
+                ]
+              },
+              {
+                "Sid": "ObservabilityReadOnlyPermissions",
+                "Effect": "Allow",
+                "Action": [
+                  "application-autoscaling:DescribeScalingPolicies",
+                  "application-signals:BatchGet*",
+                  "application-signals:Get*",
+                  "application-signals:List*",
+                  "autoscaling:Describe*",
+                  "cloudwatch:BatchGet*",
+                  "cloudwatch:Describe*",
+                  "cloudwatch:GenerateQuery",
+                  "cloudwatch:Get*",
+                  "cloudwatch:List*",
+                  "oam:ListSinks",
+                  "rum:BatchGet*",
+                  "rum:Get*",
+                  "rum:List*",
+                  "synthetics:Describe*",
+                  "synthetics:Get*",
+                  "synthetics:List*",
+                  "xray:BatchGet*",
+                  "xray:Get*",
+                  "xray:List*",
+                  "xray:StartTraceRetrieval",
+                  "xray:CancelTraceRetrieval",
+                  "logs:DescribeLogGroups",
+                  "logs:StartLiveTail",
+                  "logs:StopLiveTail"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "TransactionSearchXRayPermissions",
+                "Effect": "Allow",
+                "Action": [
+                  "xray:GetTraceSegmentDestination",
+                  "xray:UpdateTraceSegmentDestination",
+                  "xray:GetIndexingRules",
+                  "xray:UpdateIndexingRule"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "TransactionSearchLogGroupPermissions",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:PutRetentionPolicy"
+                ],
+                "Resource": [
+                  "arn:aws:logs:*:*:log-group:/aws/application-signals/data:*",
+                  "arn:aws:logs:*:*:log-group:aws/spans:*"
+                ]
+              },
+              {
+                "Sid": "TransactionSearchLogsPermissions",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:DescribeResourcePolicies",
+                  "logs:PutResourcePolicy"
+                ],
+                "Resource": [
+                  "*"
+                ],
+                "Condition": {
+                  "StringEquals": {
+                    "aws:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "TransactionSearchApplicationSignalsPermissions",
+                "Effect": "Allow",
+                "Action": [
+                  "application-signals:StartDiscovery"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "CloudWatchApplicationSignalsCreateServiceLinkedRolePermissions",
+                "Effect": "Allow",
+                "Action": "iam:CreateServiceLinkedRole",
+                "Resource": "arn:aws:iam::*:role/aws-service-role/application-signals.cloudwatch.amazonaws.com/AWSServiceRoleForCloudWatchApplicationSignals",
+                "Condition": {
+                  "StringLike": {
+                    "iam:AWSServiceName": "application-signals.cloudwatch.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "CloudWatchApplicationSignalsGetRolePermissions",
+                "Effect": "Allow",
+                "Action": "iam:GetRole",
+                "Resource": "arn:aws:iam::*:role/aws-service-role/application-signals.cloudwatch.amazonaws.com/AWSServiceRoleForCloudWatchApplicationSignals"
+              },
+              {
+                "Sid": "CreateBedrockAgentCoreNetworkServiceLinkedRolePermissions",
+                "Effect": "Allow",
+                "Action": "iam:CreateServiceLinkedRole",
+                "Resource": "arn:aws:iam::*:role/aws-service-role/network.bedrock-agentcore.amazonaws.com/AWSServiceRoleForBedrockAgentCoreNetwork",
+                "Condition": {
+                  "StringEquals": {
+                    "iam:AWSServiceName": "network.bedrock-agentcore.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "CreateBedrockAgentCoreGatewayNetworkServiceLinkedRolePermissions",
+                "Effect": "Allow",
+                "Action": "iam:CreateServiceLinkedRole",
+                "Resource": "arn:aws:iam::*:role/aws-service-role/bedrock-agentcore.amazonaws.com/AWSServiceRoleForBedrockAgentCoreGatewayNetwork",
+                "Condition": {
+                  "StringEquals": {
+                    "iam:AWSServiceName": "bedrock-agentcore.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "CreateBedrockAgentCoreRuntimeIdentityServiceLinkedRolePermissions",
+                "Effect": "Allow",
+                "Action": "iam:CreateServiceLinkedRole",
+                "Resource": "arn:aws:iam::*:role/aws-service-role/runtime-identity.bedrock-agentcore.amazonaws.com/AWSServiceRoleForBedrockAgentCoreRuntimeIdentity",
+                "Condition": {
+                  "StringEquals": {
+                    "iam:AWSServiceName": "runtime-identity.bedrock-agentcore.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "CreateBedrockAgentCoreRuntimeInstancesServiceLinkedRolePermissions",
+                "Effect": "Allow",
+                "Action": "iam:CreateServiceLinkedRole",
+                "Resource": "arn:aws:iam::*:role/aws-service-role/runtime-instances.bedrock-agentcore.amazonaws.com/AWSServiceRoleForBedrockAgentCoreRuntimeInstances",
+                "Condition": {
+                  "StringEquals": {
+                    "iam:AWSServiceName": "runtime-instances.bedrock-agentcore.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "CloudWatchApplicationSignalsCloudTrailPermissions",
+                "Effect": "Allow",
+                "Action": [
+                  "cloudtrail:CreateServiceLinkedChannel"
+                ],
+                "Resource": "arn:aws:cloudtrail:*:*:channel/aws-service-channel/application-signals/*"
+              },
+              {
+                "Sid": "BedrockAgentCoreRuntimeS3WriteAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:CreateBucket",
+                  "s3:PutBucketPolicy",
+                  "s3:PutBucketVersioning",
+                  "s3:PutObject"
+                ],
+                "Resource": [
+                  "arn:aws:s3:::bedrock-agentcore-runtime-*"
+                ],
+                "Condition": {
+                  "StringEquals": {
+                    "s3:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreRuntimeS3ReadAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetObject",
+                  "s3:GetObjectVersion",
+                  "s3:ListBucket",
+                  "s3:ListBucketVersions"
+                ],
+                "Resource": "arn:aws:s3:::*",
+                "Condition": {
+                  "StringEquals": {
+                    "s3:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreRuntimeS3ListAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:ListAllMyBuckets"
+                ],
+                "Resource": "*",
+                "Condition": {
+                  "StringEquals": {
+                    "s3:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreRuntimeECRAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "ecr:DescribeRepositories",
+                  "ecr:DescribeImages",
+                  "ecr:ListImages"
+                ],
+                "Resource": [
+                  "arn:aws:ecr:*:*:repository/*"
+                ]
+              },
+              {
+                "Sid": "AgentCoreEvaluationCloudWatchLogCreate",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogGroup"
+                ],
+                "Resource": [
+                  "arn:aws:logs:*:*:log-group:/aws/bedrock-agentcore/evaluations/*"
+                ]
+              },
+              {
+                "Sid": "AgentCoreEvaluationCloudWatchLogCustomLogGroupCreate",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents"
+                ],
+                "Resource": [
+                  "arn:aws:logs:*:*:log-group:*"
+                ],
+                "Condition": {
+                  "StringEquals": {
+                    "aws:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "AgentCoreEvaluationCloudWatchLogIndexAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:PutIndexPolicy",
+                  "logs:DescribeIndexPolicies"
+                ],
+                "Resource": [
+                  "arn:aws:logs:*:*:log-group:aws/spans",
+                  "arn:aws:logs:*:*:log-group:aws/spans:*"
+                ]
+              },
+              {
+                "Sid": "AgentCoreEvaluationBedrockInvokeAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock:InvokeModel",
+                  "bedrock:InvokeModelWithResponseStream"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock:*::foundation-model/*",
+                  "arn:aws:bedrock:*:*:inference-profile/*"
+                ]
+              },
+              {
+                "Sid": "AgentCoreEvaluationLambdaAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "lambda:InvokeFunction",
+                  "lambda:GetFunction"
+                ],
+                "Resource": "arn:aws:lambda:*:*:function:*"
+              },
+              {
+                "Sid": "AgentCoreEvaluationBedrockMantleInference",
+                "Effect": "Allow",
+                "Action": "bedrock-mantle:CreateInference",
+                "Resource": "arn:aws:bedrock-mantle:*:*:project/*",
+                "Condition": {
+                  "StringEquals": {
+                    "aws:ResourceAccount": "${aws:PrincipalAccount}"
+                  }
+                }
+              },
+              {
+                "Sid": "AgentCoreEvaluationBedrockMantleCallWithBearerToken",
+                "Effect": "Allow",
+                "Action": "bedrock-mantle:CallWithBearerToken",
+                "Resource": "*"
+              }
+            ]
+          },
+          "IsDefaultVersion": true,
+          "VersionId": "v1"
+        }
+      ]
+    },
+    {
+      "PolicyName": "AdministratorAccess",
+      "Arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+      "PolicyVersionList": [
+        {
+          "Document": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": "*",
+                "Resource": "*"
+              }
+            ]
+          },
+          "IsDefaultVersion": true,
+          "VersionId": "v1"
+        }
+      ]
+    },
+    {
+      "PolicyName": "agentcore-readonly-boundary",
+      "Arn": "arn:aws:iam::111122223333:policy/agentcore-readonly-boundary",
+      "PolicyVersionList": [
+        {
+          "Document": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:Get*",
+                  "bedrock-agentcore:List*"
+                ],
+                "Resource": "*"
+              }
+            ]
+          },
+          "IsDefaultVersion": true,
+          "VersionId": "v1"
+        }
+      ]
+    }
+  ],
+  "RoleDetailList": [
+    {
+      "RoleName": "AmazonBedrockAgentCoreSDKRuntime-us-east-1-0a1b2c3d4e",
+      "Arn": "arn:aws:iam::111122223333:role/AmazonBedrockAgentCoreSDKRuntime-us-east-1-0a1b2c3d4e",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AssumeRolePolicy",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "bedrock-agentcore.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "aws:SourceAccount": "111122223333"
+              },
+              "ArnLike": {
+                "aws:SourceArn": "arn:aws:bedrock-agentcore:us-east-1:111122223333:*"
+              }
+            }
+          }
+        ]
+      },
+      "RolePolicyList": [
+        {
+          "PolicyName": "AmazonBedrockAgentCoreSDKRuntime-us-east-1-0a1b2c3d4e-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "ECRImageAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "ecr:BatchGetImage",
+                  "ecr:GetDownloadUrlForLayer"
+                ],
+                "Resource": [
+                  "arn:aws:ecr:us-east-1:111122223333:repository/*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:DescribeLogStreams",
+                  "logs:CreateLogGroup"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:/aws/bedrock-agentcore/runtimes/*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:DescribeLogGroups"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*"
+                ]
+              },
+              {
+                "Sid": "ECRTokenAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "ecr:GetAuthorizationToken"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "xray:PutTraceSegments",
+                  "xray:PutTelemetryRecords",
+                  "xray:GetSamplingRules",
+                  "xray:GetSamplingTargets"
+                ],
+                "Resource": [
+                  "*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Resource": "*",
+                "Action": "cloudwatch:PutMetricData",
+                "Condition": {
+                  "StringEquals": {
+                    "cloudwatch:namespace": "bedrock-agentcore"
+                  }
+                }
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:PutDeliverySource",
+                  "logs:PutDeliveryDestination",
+                  "logs:CreateDelivery",
+                  "logs:GetDeliverySource",
+                  "logs:DeleteDeliverySource",
+                  "logs:DeleteDeliveryDestination"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "BedrockAgentCoreRuntime",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:InvokeAgentRuntime",
+                  "bedrock-agentcore:InvokeAgentRuntimeForUser"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:runtime/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreMemoryCreateMemory",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateMemory"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "BedrockAgentCoreMemory",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateEvent",
+                  "bedrock-agentcore:GetEvent",
+                  "bedrock-agentcore:GetMemory",
+                  "bedrock-agentcore:GetMemoryRecord",
+                  "bedrock-agentcore:ListActors",
+                  "bedrock-agentcore:ListEvents",
+                  "bedrock-agentcore:ListMemoryRecords",
+                  "bedrock-agentcore:ListSessions",
+                  "bedrock-agentcore:DeleteEvent",
+                  "bedrock-agentcore:DeleteMemoryRecord",
+                  "bedrock-agentcore:RetrieveMemoryRecords"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:memory/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentityGetResourceApiKey",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:GetResourceApiKey"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default/apikeycredentialprovider/*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentityGetCredentialProviderClientSecret",
+                "Effect": "Allow",
+                "Action": [
+                  "secretsmanager:GetSecretValue"
+                ],
+                "Resource": [
+                  "arn:aws:secretsmanager:us-east-1:111122223333:secret:bedrock-agentcore-identity!default/oauth2/*",
+                  "arn:aws:secretsmanager:us-east-1:111122223333:secret:bedrock-agentcore-identity!default/apikey/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentityGetResourceOauth2Token",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:GetResourceOauth2Token"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default/oauth2credentialprovider/*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/support_agent-*"
+                ]
+              },
+              {
+                "Sid": "BedrockModelInvocation",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock:InvokeModel",
+                  "bedrock:InvokeModelWithResponseStream",
+                  "bedrock:ApplyGuardrail"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock:*::foundation-model/*",
+                  "arn:aws:bedrock:*:*:inference-profile/*",
+                  "arn:aws:bedrock:us-east-1:111122223333:*"
+                ]
+              },
+              {
+                "Sid": "MarketplaceSubscribeOnFirstCall",
+                "Effect": "Allow",
+                "Action": [
+                  "aws-marketplace:ViewSubscriptions",
+                  "aws-marketplace:Subscribe"
+                ],
+                "Resource": "*",
+                "Condition": {
+                  "StringEquals": {
+                    "aws:CalledViaLast": "bedrock.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreCodeInterpreter",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateCodeInterpreter",
+                  "bedrock-agentcore:StartCodeInterpreterSession",
+                  "bedrock-agentcore:InvokeCodeInterpreter",
+                  "bedrock-agentcore:StopCodeInterpreterSession",
+                  "bedrock-agentcore:DeleteCodeInterpreter",
+                  "bedrock-agentcore:ListCodeInterpreters",
+                  "bedrock-agentcore:GetCodeInterpreter",
+                  "bedrock-agentcore:GetCodeInterpreterSession",
+                  "bedrock-agentcore:ListCodeInterpreterSessions"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:aws:code-interpreter/*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:code-interpreter/*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:code-interpreter-custom/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentity",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateWorkloadIdentity",
+                  "bedrock-agentcore:GetWorkloadAccessTokenForUserId"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/*"
+                ]
+              },
+              {
+                "Sid": "AwsJwtFederation",
+                "Effect": "Allow",
+                "Action": "sts:GetWebIdentityToken",
+                "Resource": "*"
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    },
+    {
+      "RoleName": "AmazonBedrockAgentCoreSDKRuntime-us-east-1-9f8e7d6c5b",
+      "Arn": "arn:aws:iam::111122223333:role/AmazonBedrockAgentCoreSDKRuntime-us-east-1-9f8e7d6c5b",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AssumeRolePolicy",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "bedrock-agentcore.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "aws:SourceAccount": "111122223333"
+              },
+              "ArnLike": {
+                "aws:SourceArn": "arn:aws:bedrock-agentcore:us-east-1:111122223333:*"
+              }
+            }
+          }
+        ]
+      },
+      "RolePolicyList": [
+        {
+          "PolicyName": "AmazonBedrockAgentCoreSDKRuntime-us-east-1-9f8e7d6c5b-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:DescribeLogStreams",
+                  "logs:CreateLogGroup"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:/aws/bedrock-agentcore/runtimes/*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:DescribeLogGroups"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "xray:PutTraceSegments",
+                  "xray:PutTelemetryRecords",
+                  "xray:GetSamplingRules",
+                  "xray:GetSamplingTargets"
+                ],
+                "Resource": [
+                  "*"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Resource": "*",
+                "Action": "cloudwatch:PutMetricData",
+                "Condition": {
+                  "StringEquals": {
+                    "cloudwatch:namespace": "bedrock-agentcore"
+                  }
+                }
+              },
+              {
+                "Sid": "CloudWatchLogsPutResourcePolicy",
+                "Effect": "Allow",
+                "Action": [
+                  "logs:PutResourcePolicy"
+                ],
+                "Resource": [
+                  "arn:aws:logs:us-east-1:111122223333:log-group:/aws/bedrock-agentcore/runtimes/support_agent-*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreMemory",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateEvent",
+                  "bedrock-agentcore:GetEvent",
+                  "bedrock-agentcore:GetMemory",
+                  "bedrock-agentcore:GetMemoryRecord",
+                  "bedrock-agentcore:ListActors",
+                  "bedrock-agentcore:ListEvents",
+                  "bedrock-agentcore:ListMemoryRecords",
+                  "bedrock-agentcore:ListSessions",
+                  "bedrock-agentcore:DeleteEvent",
+                  "bedrock-agentcore:DeleteMemoryRecord",
+                  "bedrock-agentcore:RetrieveMemoryRecords"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:memory/support_agent_mem-*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentityGetResourceApiKey",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:GetResourceApiKey"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default/apikeycredentialprovider/*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentityGetCredentialProviderClientSecret",
+                "Effect": "Allow",
+                "Action": [
+                  "secretsmanager:GetSecretValue"
+                ],
+                "Resource": [
+                  "arn:aws:secretsmanager:us-east-1:111122223333:secret:bedrock-agentcore-identity!default/oauth2/*",
+                  "arn:aws:secretsmanager:us-east-1:111122223333:secret:bedrock-agentcore-identity!default/apikey/*"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentityGetResourceOauth2Token",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:GetResourceOauth2Token"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:token-vault/default/oauth2credentialprovider/*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/support_agent-*"
+                ]
+              },
+              {
+                "Sid": "BedrockModelInvocation",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock:InvokeModel",
+                  "bedrock:InvokeModelWithResponseStream",
+                  "bedrock:ApplyGuardrail"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock:*::foundation-model/*",
+                  "arn:aws:bedrock:us-east-1:111122223333:*"
+                ]
+              },
+              {
+                "Sid": "MarketplaceSubscribeOnFirstCall",
+                "Effect": "Allow",
+                "Action": [
+                  "aws-marketplace:ViewSubscriptions",
+                  "aws-marketplace:Subscribe"
+                ],
+                "Resource": "*",
+                "Condition": {
+                  "StringEquals": {
+                    "aws:CalledViaLast": "bedrock.amazonaws.com"
+                  }
+                }
+              },
+              {
+                "Sid": "BedrockAgentCoreCodeInterpreter",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:StartCodeInterpreterSession",
+                  "bedrock-agentcore:InvokeCodeInterpreter",
+                  "bedrock-agentcore:StopCodeInterpreterSession",
+                  "bedrock-agentcore:GetCodeInterpreter",
+                  "bedrock-agentcore:GetCodeInterpreterSession",
+                  "bedrock-agentcore:ListCodeInterpreterSessions"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:aws:code-interpreter/aws.codeinterpreter.v1"
+                ]
+              },
+              {
+                "Sid": "BedrockAgentCoreIdentity",
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:GetWorkloadAccessTokenForUserId"
+                ],
+                "Resource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/support_agent-*"
+                ]
+              },
+              {
+                "Sid": "AwsJwtFederation",
+                "Effect": "Allow",
+                "Action": "sts:GetWebIdentityToken",
+                "Resource": "*"
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    },
+    {
+      "RoleName": "support-agent-prod",
+      "Arn": "arn:aws:iam::111122223333:role/support-agent-prod",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "bedrock-agentcore.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      "RolePolicyList": [
+        {
+          "PolicyName": "support-agent-prod-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:GetMemory",
+                  "bedrock-agentcore:CreateEvent",
+                  "bedrock-agentcore:ListEvents"
+                ],
+                "Resource": "arn:aws:bedrock-agentcore:us-west-2:111122223333:memory/support_mem-*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": "bedrock-agentcore:InvokeCodeInterpreter",
+                "Resource": "arn:aws:bedrock-agentcore:us-west-2:aws:code-interpreter/aws.codeinterpreter.v1"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "ecr:BatchGetImage",
+                  "ecr:GetDownloadUrlForLayer"
+                ],
+                "Resource": "arn:aws:ecr:us-west-2:111122223333:repository/support-agent"
+              },
+              {
+                "Effect": "Allow",
+                "Action": "ecr:GetAuthorizationToken",
+                "Resource": "*"
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    },
+    {
+      "RoleName": "billing-agent-prod",
+      "Arn": "arn:aws:iam::111122223333:role/billing-agent-prod",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AssumeRolePolicy",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "bedrock-agentcore.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "aws:SourceAccount": "111122223333"
+              },
+              "ArnLike": {
+                "aws:SourceArn": "arn:aws:bedrock-agentcore:us-east-1:111122223333:*"
+              }
+            }
+          }
+        ]
+      },
+      "RolePolicyList": [
+        {
+          "PolicyName": "billing-agent-prod-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": "bedrock-agentcore:*",
+                "Resource": "*"
+              },
+              {
+                "Effect": "Deny",
+                "Action": "bedrock-agentcore:*",
+                "NotResource": [
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:memory/billing_mem-*",
+                  "arn:aws:bedrock-agentcore:us-east-1:111122223333:runtime/billing-*"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    },
+    {
+      "RoleName": "MyBedrockAgentCoreDeployRole",
+      "Arn": "arn:aws:iam::111122223333:role/MyBedrockAgentCoreDeployRole",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AssumeRolePolicy",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "bedrock-agentcore.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "aws:SourceAccount": "111122223333"
+              },
+              "ArnLike": {
+                "aws:SourceArn": "arn:aws:bedrock-agentcore:us-east-1:111122223333:*"
+              }
+            }
+          }
+        ]
+      },
+      "RolePolicyList": [],
+      "AttachedManagedPolicies": [
+        {
+          "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+      ]
+    },
+    {
+      "RoleName": "prod-admin",
+      "Arn": "arn:aws:iam::111122223333:role/prod-admin",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "ec2.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      "RolePolicyList": [],
+      "AttachedManagedPolicies": [
+        {
+          "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+      ]
+    }
+  ],
+  "UserDetailList": [
+    {
+      "UserName": "dev-alice",
+      "Arn": "arn:aws:iam::111122223333:user/dev-alice",
+      "GroupList": [],
+      "UserPolicyList": [],
+      "AttachedManagedPolicies": [
+        {
+          "PolicyArn": "arn:aws:iam::aws:policy/BedrockAgentCoreFullAccess"
+        }
+      ]
+    },
+    {
+      "UserName": "analyst-bob",
+      "Arn": "arn:aws:iam::111122223333:user/analyst-bob",
+      "GroupList": [],
+      "UserPolicyList": [
+        {
+          "PolicyName": "analyst-bob-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": "bedrock-agentcore:InvokeCodeInterpreter",
+                "Resource": "*"
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    },
+    {
+      "UserName": "ci-deployer",
+      "Arn": "arn:aws:iam::111122223333:user/ci-deployer",
+      "GroupList": [],
+      "UserPolicyList": [
+        {
+          "PolicyName": "ci-deployer-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateCodeInterpreter",
+                  "bedrock-agentcore:InvokeCodeInterpreter"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": "iam:PassRole",
+                "Resource": "arn:aws:iam::111122223333:role/MyBedrockAgentCoreDeployRole"
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": [],
+      "PermissionsBoundary": {
+        "PermissionsBoundaryArn": "arn:aws:iam::111122223333:policy/agentcore-readonly-boundary",
+        "PermissionsBoundaryType": "Policy"
+      }
+    },
+    {
+      "UserName": "ops-carol",
+      "Arn": "arn:aws:iam::111122223333:user/ops-carol",
+      "GroupList": [],
+      "UserPolicyList": [
+        {
+          "PolicyName": "ops-carol-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:CreateCodeInterpreter",
+                  "bedrock-agentcore:InvokeCodeInterpreter"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": "iam:PassRole",
+                "Resource": "*",
+                "Condition": {
+                  "StringEquals": {
+                    "iam:PassedToService": "lambda.amazonaws.com"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    },
+    {
+      "UserName": "readonly-dan",
+      "Arn": "arn:aws:iam::111122223333:user/readonly-dan",
+      "GroupList": [],
+      "UserPolicyList": [
+        {
+          "PolicyName": "readonly-dan-inline",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock-agentcore:Get*",
+                  "bedrock-agentcore:List*"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
+        }
+      ],
+      "AttachedManagedPolicies": []
+    }
+  ],
+  "GroupDetailList": []
+}

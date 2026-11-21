@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentcore-iam-audit"
+version = "0.1.0"
+description = "Find Amazon Bedrock AgentCore IAM paths: agents reaching other agents' memory, runtimes, code interpreters and secrets, and code-interpreter privilege escalation."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "Murat Bekgi" }]
+keywords = ["aws", "bedrock", "agentcore", "iam", "security", "ai-security", "privilege-escalation", "cloud-security"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Information Technology",
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+]
+dependencies = []
+
+[project.optional-dependencies]
+live = ["boto3>=1.40"]
+dev = ["pytest>=8", "ruff>=0.6", "boto3>=1.40"]
+
+[project.urls]
+Homepage = "https://github.com/garag0l/agentcore-iam-audit"
+Issues = "https://github.com/garag0l/agentcore-iam-audit/issues"
+Changelog = "https://github.com/garag0l/agentcore-iam-audit/blob/main/CHANGELOG.md"
+
+[project.scripts]
+agentcore-iam-audit = "agentcore_iam_audit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentcore_iam_audit"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+extend-exclude = ["tests/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
