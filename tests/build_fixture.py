@@ -155,5 +155,5 @@ gaad = {
     ],
     "GroupDetailList": [],
 }
-(F / "account_gaad.json").write_text(json.dumps(gaad, indent=2) + "\n", encoding="utf-8")
+(F / "account_gaad.json").write_text(json.dumps(gaad, indent=2) + "\n", encoding="utf-8", newline="\n")
 print("wrote", F / "account_gaad.json")
