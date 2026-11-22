@@ -4,6 +4,19 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-21
+
+### Added
+- Composite **GitHub Action** (`action.yml`): run the audit with
+  `uses: garag0l/agentcore-iam-audit@v0.1.2` from a GAAD export, a single
+  execution-role policy, or live AWS credentials. Inputs are passed through env
+  vars (no template injection), and an end-to-end CI job runs the action against
+  the committed fixtures.
+
+### Changed
+- Build: the package version is single-sourced from `__init__.py` (hatchling
+  dynamic version), so it can no longer drift from the release tag.
+
 ## [0.1.1] - 2026-11-21
 
 ### Added
