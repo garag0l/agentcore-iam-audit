@@ -1,0 +1,96 @@
+name: "AgentCore IAM Audit"
+description: "Audit Amazon Bedrock AgentCore IAM for cross-agent memory/runtime/code-interpreter reach and code-interpreter privilege escalation — from a get-account-authorization-details export, a single execution-role policy, or live AWS credentials (read-only)."
+author: "Murat Bekgi"
+branding:
+  icon: "lock"
+  color: "orange"
+
+inputs:
+  gaad:
+    description: "Path to the output of `aws iam get-account-authorization-details` (offline audit)."
+    required: false
+    default: ""
+  policy:
+    description: "Path to one execution-role policy document to check before deploying it."
+    required: false
+    default: ""
+  trust:
+    description: "With `policy`: the role's trust policy document."
+    required: false
+    default: ""
+  live:
+    description: "Set to 'true' to read IAM + AgentCore inventory with the runner's AWS credentials (read-only). Configure credentials with aws-actions/configure-aws-credentials first."
+    required: false
+    default: "false"
+  region:
+    description: "With `live`: AgentCore region to inventory (default: session region)."
+    required: false
+    default: ""
+  format:
+    description: "Output format: text or json."
+    required: false
+    default: "text"
+  fail-on:
+    description: "Exit non-zero when a finding at this severity or higher is present: high, medium, low, or none."
+    required: false
+    default: "high"
+  version:
+    description: "Install this PyPI version of agentcore-iam-audit instead of the bundled action checkout (e.g. 0.1.2)."
+    required: false
+    default: ""
+  args:
+    description: "Extra arguments appended to the agentcore-iam-audit command (advanced)."
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: "3.13"
+    - name: Install agentcore-iam-audit
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        IN_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        if [ -n "$IN_VERSION" ]; then
+          python3 -m pip install --quiet "agentcore-iam-audit==$IN_VERSION"
+        else
+          python3 -m pip install --quiet "$ACTION_PATH"
+        fi
+    - name: Run the audit
+      shell: bash
+      env:
+        IN_GAAD: ${{ inputs.gaad }}
+        IN_POLICY: ${{ inputs.policy }}
+        IN_TRUST: ${{ inputs.trust }}
+        IN_LIVE: ${{ inputs.live }}
+        IN_REGION: ${{ inputs.region }}
+        IN_FORMAT: ${{ inputs.format }}
+        IN_FAIL_ON: ${{ inputs.fail-on }}
+        IN_ARGS: ${{ inputs.args }}
+      run: |
+        set -euo pipefail
+        cmd=(agentcore-iam-audit)
+        src=0
+        if [ -n "$IN_GAAD" ]; then cmd+=(--gaad "$IN_GAAD"); src=$((src+1)); fi
+        if [ -n "$IN_POLICY" ]; then
+          cmd+=(--policy "$IN_POLICY"); src=$((src+1))
+          [ -n "$IN_TRUST" ] && cmd+=(--trust "$IN_TRUST")
+        fi
+        if [ "$IN_LIVE" = "true" ]; then
+          cmd+=(--live); src=$((src+1))
+          [ -n "$IN_REGION" ] && cmd+=(--region "$IN_REGION")
+        fi
+        if [ "$src" -ne 1 ]; then
+          echo "::error::Provide exactly one source: gaad, policy, or live=true (got $src)." >&2
+          exit 2
+        fi
+        cmd+=(--format "$IN_FORMAT" --fail-on "$IN_FAIL_ON" --no-color)
+        # IN_ARGS is an intentional word-split escape hatch for extra flags.
+        # shellcheck disable=SC2086
+        "${cmd[@]}" $IN_ARGS

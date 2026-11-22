@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentcore-iam-audit"
-version = "0.1.1"
+dynamic = ["version"]
 description = "Find Amazon Bedrock AgentCore IAM paths: agents reaching other agents' memory, runtimes, code interpreters and secrets, and code-interpreter privilege escalation."
 readme = "README.md"
 license = "MIT"
@@ -32,6 +32,9 @@ Changelog = "https://github.com/garag0l/agentcore-iam-audit/blob/main/CHANGELOG.
 
 [project.scripts]
 agentcore-iam-audit = "agentcore_iam_audit.cli:main"
+
+[tool.hatch.version]
+path = "src/agentcore_iam_audit/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentcore_iam_audit"]

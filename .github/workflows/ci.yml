@@ -31,3 +31,23 @@ jobs:
       - name: Fixture is reproducible from the real policy documents
         run: python tests/build_fixture.py && git diff --exit-code tests/fixtures/account_gaad.json
         shell: bash
+
+  action:
+    name: composite action (end-to-end)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Audit the GAAD fixture via the action
+        uses: ./
+        with:
+          gaad: tests/fixtures/account_gaad.json
+          format: json
+          fail-on: none
+      - name: Policy check via the action
+        uses: ./
+        with:
+          policy: tests/fixtures/toolkit_policy_current.json
+          trust: tests/fixtures/toolkit_trust_policy.json
+          fail-on: none

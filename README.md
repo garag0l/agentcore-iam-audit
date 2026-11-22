@@ -42,6 +42,33 @@ agentcore-iam-audit --gaad gaad.json -f json --fail-on medium
 
 Live mode needs `iam:GetAccountAuthorizationDetails` plus `bedrock-agentcore:List*`/`Get*` on code interpreters, runtimes and browsers. The AWS managed `SecurityAudit` policy covers the IAM part. Exit code `1` when anything is at or above `--fail-on` (default `high`).
 
+### GitHub Action
+
+Run the audit in CI without managing the install:
+
+```yaml
+# Offline: audit a committed/exported GAAD file
+- uses: actions/checkout@v5
+- uses: garag0l/agentcore-iam-audit@v0.1.2
+  with:
+    gaad: gaad.json
+    fail-on: high
+
+# Live, read-only: configure AWS credentials first, then audit
+- uses: aws-actions/configure-aws-credentials@v4
+  with: { role-to-assume: arn:aws:iam::111122223333:role/audit, aws-region: us-east-1 }
+- uses: garag0l/agentcore-iam-audit@v0.1.2
+  with:
+    live: "true"
+    region: us-east-1
+    fail-on: high
+```
+
+Provide exactly one source: `gaad`, `policy` (+ optional `trust`), or `live: "true"`.
+Other inputs: `format` (text/json), `fail-on` (high/medium/low/none), `version`
+(pin the installed PyPI release), `args` (extra flags). The step exits non-zero
+when a finding is at or above `fail-on`, failing the job.
+
 ## Checks
 
 | ID | Severity | Who | Finding |
