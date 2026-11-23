@@ -4,6 +4,9 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+### Added
+- **ACIA-006** (high): an agent execution role can mint workload access tokens for *other* agents' workload identities and call `GetResourceOauth2Token` / `GetResourceApiKey` with them, which pulls those agents' tool credentials from the token vault. This is the credential step in Zenity Labs' AgentCorruption chain. The pre-2025-12-09 starter-toolkit role is flagged; the current one is not.
+
 ## [0.1.2] - 2026-11-21
 
 ### Added
