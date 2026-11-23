@@ -56,6 +56,13 @@ ECR_REPO = "arn:{part}:ecr:{region}:{account}:repository/{probe}"
 ID_SECRET = "arn:{part}:secretsmanager:{region}:{account}:secret:bedrock-agentcore-identity!default/oauth2/{probe}"
 ID_APIKEY = "arn:{part}:secretsmanager:{region}:{account}:secret:bedrock-agentcore-identity!default/apikey/{probe}"
 IAM_ROLE = "arn:{part}:iam::{account}:role/{probe}"
+WORKLOAD_ID = "arn:{part}:bedrock-agentcore:{region}:{account}:workload-identity-directory/default/workload-identity/{probe}"
+WORKLOAD_TOKEN = [
+    "bedrock-agentcore:GetWorkloadAccessToken",
+    "bedrock-agentcore:GetWorkloadAccessTokenForJWT",
+    "bedrock-agentcore:GetWorkloadAccessTokenForUserId",
+]
+RESOURCE_CRED = ["bedrock-agentcore:GetResourceOauth2Token", "bedrock-agentcore:GetResourceApiKey"]
 
 MEMORY_READ = [
     "bedrock-agentcore:GetMemory",
@@ -74,6 +81,7 @@ MEMORY_WRITE = [
 U42 = "https://unit42.paloaltonetworks.com/exploit-of-aws-agentcore-iam-god-mode/"
 SONRAI = "https://sonraisecurity.com/blog/aws-agentcore-privilege-escalation-bedrock-scp-fix/"
 SONRAI_EXFIL = "https://sonraisecurity.com/blog/sandboxed-to-compromised-new-research-exposes-credential-exfiltration-paths-in-aws-code-interpreters/"
+ZENITY = "https://labs.zenity.io/post/agentcorruption-how-a-single-prompt-collapsed-the-entire-cloud-security-model"
 AWS_DEFAULT_ROLES = "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html"
 
 
@@ -169,6 +177,23 @@ def check_agent_role(p: Principal) -> list[Finding]:
                 "OAuth client secrets and API keys of all credential providers in the account's default token "
                 "vault, not just the ones this agent uses (unless a resource policy on each secret denies it, which IAM data alone cannot show).",
                 all(g.conditional for g in (s1, s2) if g.allowed),
+            )
+        )
+    mint, c1 = _any(p, WORKLOAD_TOKEN, WORKLOAD_ID)
+    fetch, c2 = _any(p, RESOURCE_CRED, WORKLOAD_ID)
+    if mint and fetch:
+        out.append(
+            Finding(
+                "ACIA-006",
+                "high",
+                name,
+                "Agent role can act as other agents' workload identities and fetch their tool credentials",
+                f"{', '.join(mint)} and {', '.join(fetch)} on workload identities not owned by this agent "
+                "(workload-identity/* or *). A compromised agent can mint a workload access token for another "
+                "agent and pull that agent's OAuth tokens or API keys from the token vault. Scope both to this "
+                "agent's own workload-identity ARN.",
+                c1 or c2,
+                [ZENITY, AWS_DEFAULT_ROLES],
             )
         )
     if DEFAULT_ROLE_RX.match(p.name):

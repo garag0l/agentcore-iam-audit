@@ -28,12 +28,15 @@ def test_account_findings_exact():
     got = ids(audit(from_file(F / "account_gaad.json")))
     expected = {
         # pre-2025-12-09 starter-toolkit role: every Unit 42 "God Mode" path
-        *{(i, f"role/{OLD}") for i in ("ACIA-001", "ACIA-002", "ACIA-003", "ACIA-004", "ACIA-005", "ACIA-020")},
+        *{(i, f"role/{OLD}") for i in ("ACIA-001", "ACIA-002", "ACIA-003", "ACIA-004", "ACIA-005", "ACIA-006", "ACIA-020")},
         # current toolkit role: scoped, except the shared identity secrets
         ("ACIA-005", f"role/{NEW}"),
         ("ACIA-020", f"role/{NEW}"),
         # agent role with AdministratorAccess: reaches everything
-        *{(i, "role/MyBedrockAgentCoreDeployRole") for i in ("ACIA-001", "ACIA-002", "ACIA-003", "ACIA-004", "ACIA-005")},
+        *{
+            (i, "role/MyBedrockAgentCoreDeployRole")
+            for i in ("ACIA-001", "ACIA-002", "ACIA-003", "ACIA-004", "ACIA-005", "ACIA-006")
+        },
         # least-privilege role whose trust policy lacks SourceAccount/SourceArn
         ("ACIA-021", "role/support-agent-prod"),
         # AWS managed BedrockAgentCoreFullAccess: PassRole to *BedrockAgentCore* roles -> run code as them
@@ -315,3 +318,41 @@ def test_cli_json_and_fail_on(capsys):
 def test_cli_requires_source():
     with pytest.raises(SystemExit):
         main([])
+
+
+def test_workload_token_needs_both_mint_and_fetch():
+    base = "arn:aws:bedrock-agentcore:us-east-1:111122223333:workload-identity-directory/default/workload-identity/"
+
+    def role(statements):
+        trust = {
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {"Service": "bedrock-agentcore.amazonaws.com"},
+                    "Action": "sts:AssumeRole",
+                    "Condition": {"StringEquals": {"aws:SourceAccount": "111122223333"}},
+                }
+            ]
+        }
+        gaad = {
+            "UserDetailList": [],
+            "GroupDetailList": [],
+            "Policies": [],
+            "RoleDetailList": [
+                {
+                    "RoleName": "agent-a",
+                    "Arn": "arn:aws:iam::111122223333:role/agent-a",
+                    "AssumeRolePolicyDocument": trust,
+                    "RolePolicyList": [{"PolicyName": "p", "PolicyDocument": {"Version": "2012-10-17", "Statement": statements}}],
+                    "AttachedManagedPolicies": [],
+                }
+            ],
+        }
+        return {f.id for f in audit(load_gaad(gaad))}
+
+    mint = {"Effect": "Allow", "Action": "bedrock-agentcore:GetWorkloadAccessTokenForJWT", "Resource": base + "*"}
+    fetch = {"Effect": "Allow", "Action": "bedrock-agentcore:GetResourceOauth2Token", "Resource": base + "*"}
+    own_mint = dict(mint, Resource=base + "agent-a-*")
+    assert "ACIA-006" in role([mint, fetch])
+    assert "ACIA-006" not in role([fetch])  # can't get a token for another identity
+    assert "ACIA-006" not in role([own_mint, fetch])  # current toolkit pattern: token minting scoped to own identity

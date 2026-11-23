@@ -78,6 +78,7 @@ when a finding is at or above `fail-on`, failing the job.
 | ACIA-003 | high | agent role | Invoke other code interpreters in the account (code runs as *their* roles) |
 | ACIA-004 | medium | agent role | Pull other agents' container images (memory IDs and config inside) |
 | ACIA-005 | medium | agent role | `GetSecretValue` on **all** AgentCore Identity credential-provider secrets (`bedrock-agentcore-identity!default/oauth2/*`, `/apikey/*`) |
+| ACIA-006 | high | agent role | Mint workload access tokens for *other* agents' workload identities and fetch their OAuth tokens / API keys from the token vault |
 | ACIA-010 | high / medium | any principal | Privilege escalation: PassRole an AgentCore role + Create/InvokeCodeInterpreter. High when a passable role is admin-equivalent |
 | ACIA-011 | medium | any principal | Run code in existing custom code interpreters as their execution roles |
 | ACIA-020 | low | agent role | Starter-toolkit default role (`AmazonBedrockAgentCoreSDKRuntime-*`, `...SDKCodeBuild-*`, `AgentCoreEvalsSDK-*`) |
